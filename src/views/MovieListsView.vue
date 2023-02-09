@@ -1,7 +1,8 @@
 <template>
   <div>
     <h1>Top Movies Category by Name</h1>
-    <ul>
+    <p v-if="!groupData.length">There is no movies yet</p>
+    <ul v-else>
       <li v-for="childs in groupData" :key="childs[0]">
         <div class="label">
           <h2 class="category">{{ childs[0] }}</h2>
@@ -65,19 +66,31 @@ ul {
 </style>
 
 <script setup>
-import movies from "../constants/movies.json";
-import { computed } from "vue";
-const movieItems = movies.items;
+// import movies from "../constants/movies.json";
+import { computed, onMounted, ref } from "vue";
+import axios from "axios";
+const movieItems = ref([]);
+
+onMounted(async () => {
+  try {
+    let { data } = await axios.get(
+      "https://imdb-api.com/en/API/Top250Movies/k_zrh6tufb"
+    );
+    movieItems.value = data.items;
+  } catch (error) {
+    console.error(error);
+  }
+});
 
 const groupData = computed(() => {
-  for (let i = 0; i < movieItems.length; i++) {
-    let elems = movieItems[i];
+  for (let i = 0; i < movieItems.value.length; i++) {
+    let elems = movieItems.value[i];
     let firstLetter = elems.title.charAt(0);
     elems.categoryName = firstLetter;
   }
 
   let groups = Object.entries(
-    movieItems.reduce(
+    movieItems.value.reduce(
       (prevMovie, currentMovie) => (
         (prevMovie[currentMovie.categoryName] = [
           ...(prevMovie[currentMovie.categoryName] || []),
