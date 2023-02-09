@@ -82,15 +82,6 @@ const groupData = computed(() => {
       {}
     )
   );
-  // let results = groups.reduce(
-  //   (r, c) => {
-  //     return (
-  //       r.children.push({ label: c[0], children: c[1], total: c[1].length }), r
-  //     );
-  //   },
-  //   { name: "Top Movies by Name", children: [] }
-  // );
-  // results.children.sort((a, b) => (a.label > b.label ? 1 : -1));
   groups.sort();
   return groups;
 });
