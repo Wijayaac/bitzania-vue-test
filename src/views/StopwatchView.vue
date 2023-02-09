@@ -3,24 +3,85 @@
     <h1>Stopwatch</h1>
     <div class="content">
       <div class="time">
-        <p>H : M : S : MS</p>
+        <p>Hrs : Mins : Seconds : MiliSeconds</p>
         <span>
-          {{ hoursData }}:{{ minutesData }}:{{ secondsData }}:{{
-            milisecondsData
-          }}
+          {{ hoursData }} : {{ minutesData }} : {{ secondsData }} :
+          {{ milisecondsData }}
         </span>
-      </div>
-      <div class="log">
-        <pre>{{ loggedData }}</pre>
       </div>
     </div>
     <div class="action">
-      <button @click="toggleStopwatch">Start / Stop</button>
+      <button @click="toggleStopwatch">
+        {{ isActive ? "Stop" : "Start" }}
+      </button>
       <button @click="reset">Reset</button>
       <button @click="saveCurrentTime">Save Log</button>
     </div>
+    <div class="log" v-if="loggedData.length">
+      <p>H : M : S : MS</p>
+      <ul>
+        <li v-for="(log, index) in loggedData" :key="index">
+          {{ log.time }}
+        </li>
+      </ul>
+    </div>
   </div>
 </template>
+
+<style scoped>
+h1 {
+  text-align: center;
+}
+.content {
+  display: flex;
+  justify-content: center;
+}
+.time {
+  text-align: center;
+}
+.time p {
+  font-size: 22px;
+  font-weight: 700;
+}
+.time span {
+  font-size: 48px;
+}
+
+.action {
+  max-width: 480px;
+  margin: 30px auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.action button {
+  padding: 12px 24px;
+  font-size: 20px;
+  font-weight: 600;
+}
+.log {
+  background-color: #eee;
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+.log p {
+  margin-left: 10px;
+  font-size: 22px;
+  text-align: center;
+  font-weight: 700;
+}
+ul {
+  padding-left: 20px;
+}
+li {
+  font-size: 24px;
+  font-weight: 600;
+}
+</style>
 
 <script setup>
 import { ref, computed } from "vue";
@@ -32,45 +93,42 @@ const hoursData = ref(0);
 const loggedData = ref([]);
 
 const currentTime = computed(() => ({
-  time: `${hoursData.value} ${minutesData.value} ${secondsData.value} ${milisecondsData.value}`,
+  time: `${hoursData.value} : ${minutesData.value} : ${secondsData.value} : ${milisecondsData.value}`,
 }));
-const isActive = ref(false);
 
-let timeStopped = null;
-let stoppedDuration = 0;
-let timeBegan = null;
-let started = null;
+const isActive = ref(false);
+const timeStopped = ref(null);
+const stoppedDuration = ref(0);
+const timeOnBegining = ref(null);
+const clock = ref(null);
 
 function start() {
-  if (timeBegan === null) {
-    if (!isActive.value) {
-      reset();
-    }
-    timeBegan = new Date();
+  if (timeOnBegining.value === null) {
+    timeOnBegining.value = new Date();
   }
 
-  if (timeStopped !== null) {
-    stoppedDuration += new Date() - timeStopped;
+  if (timeStopped.value !== null) {
+    stoppedDuration.value += new Date() - timeStopped.value;
   }
 
-  started = setInterval(clockRunning, 10);
+  clock.value = setInterval(stopWatchTimer, 10);
 }
 
 function stop() {
-  timeStopped = new Date();
-  clearInterval(started);
+  timeStopped.value = new Date();
+  clearInterval(clock.value);
 }
 
 function reset() {
-  clearInterval(started);
+  clearInterval(clock.value);
   if (isActive.value) {
     isActive.value = !isActive.value;
   } else {
     isActive.value = false;
   }
-  stoppedDuration = 0;
-  timeBegan = null;
-  timeStopped = null;
+  stoppedDuration.value = 0;
+  timeOnBegining.value = null;
+  timeStopped.value = null;
 
   hoursData.value = 0;
   minutesData.value = 0;
@@ -79,14 +137,16 @@ function reset() {
   loggedData.value = [];
 }
 
-function clockRunning() {
+function stopWatchTimer() {
   let currentTime = new Date();
-  let timeElapsed = new Date(currentTime - timeBegan - stoppedDuration);
+  let timeElapsed = new Date(
+    currentTime - timeOnBegining.value - stoppedDuration.value
+  );
 
   const hours = timeElapsed.getUTCHours();
   const minutes = timeElapsed.getUTCMinutes();
   const seconds = timeElapsed.getUTCSeconds();
-  const miliseconds = timeElapsed.getUTCMilliseconds(1);
+  const miliseconds = (timeElapsed.getUTCMilliseconds() / 10) | 0;
 
   hoursData.value = formatNum(hours);
   minutesData.value = formatNum(minutes);
@@ -100,12 +160,7 @@ function formatNum(num) {
 
 function toggleStopwatch() {
   isActive.value = !isActive.value;
-
-  if (isActive.value) {
-    start();
-  } else {
-    stop();
-  }
+  return isActive.value ? start() : stop();
 }
 function saveCurrentTime() {
   loggedData.value.push(currentTime.value);
