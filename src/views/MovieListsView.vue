@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h1>Top Movies Category by Name</h1>
+    <h1>Top Movies Group by Name</h1>
     <p v-if="!groupData.length">There is no movies yet</p>
     <ul v-else>
       <li v-for="childs in groupData" :key="childs[0]">
