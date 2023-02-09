@@ -9,11 +9,11 @@
           <span class="count">{{ childs[1].length }}</span>
         </div>
         <ul class="grid">
-          <li v-for="movie in childs[1]">
-            <h3>{{ movie.title }}</h3>
-            <p>Ranking/Rating : {{ movie.rank }} / {{ movie.imDbRating }}</p>
-            <p>Published : {{ movie.year }}</p>
-          </li>
+          <MovieItem
+            v-for="movie in childs[1]"
+            :movie="movie"
+            :key="movie.id"
+          />
         </ul>
       </li>
     </ul>
@@ -78,7 +78,13 @@ const groupData = computed(() => {
 
   let groups = Object.entries(
     movieItems.reduce(
-      (r, c) => ((r[c.categoryName] = [...(r[c.categoryName] || []), c]), r),
+      (prevMovie, currentMovie) => (
+        (prevMovie[currentMovie.categoryName] = [
+          ...(prevMovie[currentMovie.categoryName] || []),
+          currentMovie,
+        ]),
+        prevMovie
+      ),
       {}
     )
   );
