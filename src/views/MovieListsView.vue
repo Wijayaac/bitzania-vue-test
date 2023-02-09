@@ -74,7 +74,9 @@ const movieItems = ref([]);
 onMounted(async () => {
   try {
     let { data } = await axios.get(
-      "https://imdb-api.com/en/API/Top250Movies/k_zrh6tufb"
+      `https://imdb-api.com/en/API/Top250Movies/${
+        import.meta.env.VITE_APP_IMDB_API
+      }`
     );
     movieItems.value = data.items;
   } catch (error) {
