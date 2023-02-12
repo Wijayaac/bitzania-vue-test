@@ -1,6 +1,8 @@
 <template>
   <div>
     <h1>Top Movies Group by Name</h1>
+    <p>{{ count }}</p>
+    <button @click="count++">Increment</button>
     <p v-if="!groupData.length">There is no movies yet</p>
     <ul v-else>
       <li v-for="childs in groupData" :key="childs[0]">
@@ -70,6 +72,7 @@ ul {
 import { computed, onMounted, ref } from "vue";
 import axios from "axios";
 const movieItems = ref([]);
+const count = ref(0);
 
 onMounted(async () => {
   try {
@@ -90,7 +93,7 @@ const groupData = computed(() => {
     let firstLetter = elems.title.charAt(0);
     elems.categoryName = firstLetter;
   }
-
+  console.log("computed");
   let groups = Object.entries(
     movieItems.value.reduce(
       (prevMovie, currentMovie) => (
@@ -106,4 +109,28 @@ const groupData = computed(() => {
   groups.sort();
   return groups;
 });
+
+const getGroupedData = (data) => {
+  for (let i = 0; i < data.length; i++) {
+    let elems = data[i];
+    let firstLetter = elems.title.charAt(0);
+    elems.categoryName = firstLetter;
+  }
+  console.log("methods");
+
+  let groups = Object.entries(
+    data.reduce(
+      (prevMovie, currentMovie) => (
+        (prevMovie[currentMovie.categoryName] = [
+          ...(prevMovie[currentMovie.categoryName] || []),
+          currentMovie,
+        ]),
+        prevMovie
+      ),
+      {}
+    )
+  );
+  groups.sort();
+  return groups;
+};
 </script>
